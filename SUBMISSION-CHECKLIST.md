@@ -3,7 +3,8 @@
 - [ ] Run `composer install`
 - [ ] Run `copy .env.example .env`
 - [ ] Run `php artisan key:generate`
-- [ ] Run `php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');"`
+- [ ] Create the MySQL database named `remedial_food_drink`
+- [ ] Confirm `.env` has the correct MySQL username and password
 - [ ] Run `php artisan migrate:fresh --seed`
 - [ ] Run `php artisan test`
 - [ ] Run `php artisan serve`

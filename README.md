@@ -23,7 +23,28 @@ cd C:\Users\VINCE\Desktop\remedial
 composer install
 copy .env.example .env
 php artisan key:generate
-php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');"
+```
+
+Before running migrations, create a MySQL database named:
+
+```text
+remedial_food_drink
+```
+
+Default local MySQL settings are:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=remedial_food_drink
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+If your MySQL username or password is different, update `.env` first.
+
+```bash
 php artisan migrate:fresh --seed
 php artisan serve
 ```
@@ -90,7 +111,7 @@ PASTE_YOUR_GITHUB_LINK_HERE
 
 ## Render Deployment Notes
 
-Create a new Render Web Service from your GitHub repository.
+Create a new Render Web Service from your GitHub repository and connect a MySQL-compatible database service.
 
 Build command:
 
