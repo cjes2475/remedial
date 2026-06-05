@@ -1,0 +1,185 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\FavoriteItem;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
+
+class FavoriteItemController extends Controller
+{
+    public function dashboard(): View
+    {
+        $stats = [
+            'total_foods' => FavoriteItem::where('category', 'Food')->count(),
+            'total_drinks' => FavoriteItem::where('category', 'Drink')->count(),
+            'average_rating' => round((float) FavoriteItem::avg('rating'), 1),
+            'highest_rated' => FavoriteItem::orderByDesc('rating')->orderByDesc('favorite_level')->first(),
+            'recent' => FavoriteItem::latest()->first(),
+        ];
+
+        return view('favorites.dashboard', [
+            'stats' => $stats,
+            'topTen' => FavoriteItem::orderByDesc('rating')->orderByDesc('favorite_level')->limit(10)->get(),
+            'mostExpensive' => FavoriteItem::orderByDesc('price')->first(),
+            'cheapest' => FavoriteItem::orderBy('price')->first(),
+            'highestCalorie' => FavoriteItem::orderByDesc('calories')->first(),
+            'mostRecommended' => FavoriteItem::orderByDesc('favorite_level')->orderByDesc('rating')->orderByDesc('battle_wins')->first(),
+        ]);
+    }
+
+    public function index(Request $request): View
+    {
+        $favorites = FavoriteItem::query()
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->string('search')->toString();
+
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->filled('category'), fn ($query) => $query->where('category', $request->string('category')))
+            ->when($request->filled('rating'), fn ($query) => $query->where('rating', '>=', (float) $request->input('rating')))
+            ->orderByDesc('favorite_level')
+            ->orderByDesc('rating')
+            ->paginate(9)
+            ->withQueryString();
+
+        return view('favorites.index', [
+            'favorites' => $favorites,
+            'categories' => FavoriteItem::CATEGORIES,
+        ]);
+    }
+
+    public function create(): View
+    {
+        return view('favorites.create', [
+            'favorite' => new FavoriteItem(['mood_tags' => []]),
+            'categories' => FavoriteItem::CATEGORIES,
+            'moods' => FavoriteItem::MOODS,
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $favorite = FavoriteItem::create($this->validatedData($request));
+
+        return redirect()
+            ->route('favorites.show', $favorite)
+            ->with('status', "{$favorite->name} was added to your collection.");
+    }
+
+    public function show(FavoriteItem $favorite): View
+    {
+        $similar = FavoriteItem::where('category', $favorite->category)
+            ->whereKeyNot($favorite->id)
+            ->orderByDesc('rating')
+            ->limit(4)
+            ->get();
+
+        return view('favorites.show', compact('favorite', 'similar'));
+    }
+
+    public function edit(FavoriteItem $favorite): View
+    {
+        return view('favorites.edit', [
+            'favorite' => $favorite,
+            'categories' => FavoriteItem::CATEGORIES,
+            'moods' => FavoriteItem::MOODS,
+        ]);
+    }
+
+    public function update(Request $request, FavoriteItem $favorite): RedirectResponse
+    {
+        $favorite->update($this->validatedData($request));
+
+        return redirect()
+            ->route('favorites.show', $favorite)
+            ->with('status', "{$favorite->name} was updated.");
+    }
+
+    public function destroy(FavoriteItem $favorite): RedirectResponse
+    {
+        $favoriteName = $favorite->name;
+        $favorite->delete();
+
+        return redirect()
+            ->route('favorites.index')
+            ->with('status', "{$favoriteName} was removed from your collection.");
+    }
+
+    public function mood(Request $request): View
+    {
+        $selectedMood = $request->string('mood')->toString();
+        $recommendations = collect();
+
+        if ($selectedMood !== '') {
+            $recommendations = FavoriteItem::where('mood_tags', 'like', '%"'.$selectedMood.'"%')
+                ->orderByDesc('rating')
+                ->orderByDesc('favorite_level')
+                ->limit(8)
+                ->get();
+        }
+
+        return view('favorites.mood', [
+            'moods' => FavoriteItem::MOODS,
+            'selectedMood' => $selectedMood,
+            'recommendations' => $recommendations,
+        ]);
+    }
+
+    public function surprise(): View
+    {
+        return view('favorites.surprise', [
+            'favorite' => FavoriteItem::inRandomOrder()->first(),
+        ]);
+    }
+
+    public function battle(): View
+    {
+        return view('favorites.battle', [
+            'items' => FavoriteItem::inRandomOrder()->limit(2)->get(),
+        ]);
+    }
+
+    public function voteBattle(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'winner_id' => ['required', 'integer', 'exists:favorite_items,id'],
+            'loser_id' => ['required', 'integer', 'exists:favorite_items,id', 'different:winner_id'],
+        ]);
+
+        FavoriteItem::whereKey($validated['winner_id'])->increment('battle_wins');
+        FavoriteItem::whereKey($validated['winner_id'])->update(['last_battled_at' => now()]);
+        FavoriteItem::whereKey($validated['loser_id'])->increment('battle_losses');
+        FavoriteItem::whereKey($validated['loser_id'])->update(['last_battled_at' => now()]);
+
+        return redirect()
+            ->route('favorites.battle')
+            ->with('status', 'Battle vote saved. A fresh matchup is ready.');
+    }
+
+    private function validatedData(Request $request): array
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'category' => ['required', Rule::in(FavoriteItem::CATEGORIES)],
+            'description' => ['required', 'string', 'max:1000'],
+            'rating' => ['required', 'numeric', 'min:1', 'max:5'],
+            'price' => ['required', 'numeric', 'min:0', 'max:99999'],
+            'calories' => ['required', 'integer', 'min:0', 'max:5000'],
+            'favorite_level' => ['required', 'integer', 'min:1', 'max:10'],
+            'image_url' => ['nullable', 'url', 'max:500'],
+            'reaction' => ['nullable', 'string', 'max:16'],
+            'mood_tags' => ['nullable', 'array'],
+            'mood_tags.*' => [Rule::in(FavoriteItem::MOODS)],
+        ]);
+
+        $validated['mood_tags'] = $validated['mood_tags'] ?? [];
+
+        return $validated;
+    }
+}

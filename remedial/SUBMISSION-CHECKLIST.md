@@ -1,0 +1,17 @@
+# Submission Checklist
+
+- [ ] Run `composer install`
+- [ ] Run `copy .env.example .env`
+- [ ] Run `php artisan key:generate`
+- [ ] Create the MySQL database named `remedial_food_drink`
+- [ ] Confirm `.env` has the correct MySQL username and password
+- [ ] Run `php artisan migrate:fresh --seed`
+- [ ] Run `php artisan test`
+- [ ] Run `php artisan serve`
+- [ ] Screenshot the `favorite_items` database table
+- [ ] Screenshot Factory and Seeder output
+- [ ] Screenshot the running dashboard
+- [ ] Record a short explanation of the system
+- [ ] Push to GitHub
+- [ ] Deploy to Render or Vercel
+- [ ] Send the GitHub and live website links via PM
