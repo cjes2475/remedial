@@ -11,7 +11,7 @@
                 <span class="pill">Level {{ $favorite->favorite_level }}/10</span>
             </div>
             <h1>{{ $favorite->name }}</h1>
-            <p>{{ $favorite->description }}</p>
+            <p>{{ $favorite->description ?: 'No description added yet.' }}</p>
             <div class="actions">
                 <a class="button primary" href="{{ route('favorites.edit', $favorite) }}">Edit</a>
                 <a class="button" href="{{ route('favorites.index') }}">Back to Collection</a>
@@ -34,7 +34,7 @@
     <section class="band">
         <div class="grid tight">
             <div class="stat"><h3>PHP {{ number_format((float) $favorite->price, 2) }}</h3><p class="muted">Price</p></div>
-            <div class="stat"><h3>{{ number_format($favorite->calories) }}</h3><p class="muted">Calories</p></div>
+            <div class="stat"><h3>{{ $favorite->calories === null ? 'N/A' : number_format($favorite->calories) }}</h3><p class="muted">Calories</p></div>
             <div class="stat"><h3>{{ $favorite->reaction ?: 'None' }}</h3><p class="muted">Reaction</p></div>
             <div class="stat"><h3>{{ $favorite->battle_wins }} - {{ $favorite->battle_losses }}</h3><p class="muted">Battle Record</p></div>
             <div class="stat"><h3>{{ $favorite->battleWinRate() }}%</h3><p class="muted">Battle Win Rate</p></div>

@@ -45,12 +45,12 @@
 
     <label>
         Calories
-        <input type="number" name="calories" value="{{ old('calories', $favorite->calories) }}" min="0" max="5000" required>
+        <input type="number" name="calories" value="{{ old('calories', $favorite->calories) }}" min="0" max="5000" placeholder="Optional">
     </label>
 
     <label class="full">
         Description
-        <textarea name="description" required maxlength="1000">{{ old('description', $favorite->description) }}</textarea>
+        <textarea name="description" maxlength="1000" placeholder="Optional">{{ old('description', $favorite->description) }}</textarea>
     </label>
 
     <label>

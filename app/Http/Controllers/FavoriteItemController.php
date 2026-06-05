@@ -140,10 +140,46 @@ class FavoriteItemController extends Controller
         ]);
     }
 
-    public function battle(): View
+    public function battle(Request $request): View
     {
+        if ($request->filled('rounds') || $request->boolean('reset')) {
+            $rounds = (int) $request->input('rounds', 3);
+            $rounds = in_array($rounds, [3, 5, 10], true) ? $rounds : 3;
+
+            $request->session()->put('food_battle', [
+                'round' => 1,
+                'rounds' => $rounds,
+                'scores' => [],
+                'finished' => false,
+            ]);
+        }
+
+        if (! $request->session()->has('food_battle')) {
+            $request->session()->put('food_battle', [
+                'round' => 1,
+                'rounds' => 3,
+                'scores' => [],
+                'finished' => false,
+            ]);
+        }
+
+        $battle = $request->session()->get('food_battle');
+        $winner = null;
+
+        if ($battle['finished'] ?? false) {
+            $winnerId = collect($battle['scores'] ?? [])
+                ->sortDesc()
+                ->keys()
+                ->first();
+
+            $winner = $winnerId ? FavoriteItem::find($winnerId) : null;
+        }
+
         return view('favorites.battle', [
-            'items' => FavoriteItem::inRandomOrder()->limit(2)->get(),
+            'items' => ($battle['finished'] ?? false) ? collect() : FavoriteItem::inRandomOrder()->limit(2)->get(),
+            'battle' => $battle,
+            'winner' => $winner,
+            'roundOptions' => [3, 5, 10],
         ]);
     }
 
@@ -159,9 +195,28 @@ class FavoriteItemController extends Controller
         FavoriteItem::whereKey($validated['loser_id'])->increment('battle_losses');
         FavoriteItem::whereKey($validated['loser_id'])->update(['last_battled_at' => now()]);
 
+        $battle = $request->session()->get('food_battle', [
+            'round' => 1,
+            'rounds' => 3,
+            'scores' => [],
+            'finished' => false,
+        ]);
+        $winnerKey = (string) $validated['winner_id'];
+        $battle['scores'][$winnerKey] = ($battle['scores'][$winnerKey] ?? 0) + 1;
+
+        if ($battle['round'] >= $battle['rounds']) {
+            $battle['finished'] = true;
+            $message = 'Food Battle finished. The winner is ready.';
+        } else {
+            $battle['round']++;
+            $message = "Battle vote saved. Round {$battle['round']} is ready.";
+        }
+
+        $request->session()->put('food_battle', $battle);
+
         return redirect()
             ->route('favorites.battle')
-            ->with('status', 'Battle vote saved. A fresh matchup is ready.');
+            ->with('status', $message);
     }
 
     public function image(string $path)
@@ -177,10 +232,10 @@ class FavoriteItemController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'category' => ['required', Rule::in(FavoriteItem::CATEGORIES)],
-            'description' => ['required', 'string', 'max:1000'],
+            'description' => ['nullable', 'string', 'max:1000'],
             'rating' => ['required', 'numeric', 'min:1', 'max:5'],
             'price' => ['required', 'numeric', 'min:0', 'max:99999', 'regex:/^\d+(\.\d{1,2})?$/'],
-            'calories' => ['required', 'integer', 'min:0', 'max:5000'],
+            'calories' => ['nullable', 'integer', 'min:0', 'max:5000'],
             'favorite_level' => ['required', 'integer', 'min:1', 'max:10'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
             'reaction' => ['nullable', 'string', 'max:16'],

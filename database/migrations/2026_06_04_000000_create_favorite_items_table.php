@@ -12,9 +12,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('category');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->decimal('rating', 2, 1);
-            $table->unsignedInteger('calories');
+            $table->unsignedInteger('calories')->nullable();
             $table->decimal('price', 8, 2);
             $table->unsignedTinyInteger('favorite_level');
             $table->string('image_url')->nullable();

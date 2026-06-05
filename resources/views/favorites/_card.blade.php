@@ -13,7 +13,7 @@
             <span class="pill hot">{{ number_format((float) $favorite->rating, 1) }} rating</span>
             <span class="pill">Level {{ $favorite->favorite_level }}/10</span>
         </div>
-        <p class="muted">{{ \Illuminate\Support\Str::limit($favorite->description, 110) }}</p>
+        <p class="muted">{{ $favorite->description ? \Illuminate\Support\Str::limit($favorite->description, 110) : 'No description added.' }}</p>
         <div class="actions">
             <a class="button soft" href="{{ route('favorites.show', $favorite) }}">View</a>
             <a class="button" href="{{ route('favorites.edit', $favorite) }}">Edit</a>
