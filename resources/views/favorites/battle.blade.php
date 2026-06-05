@@ -14,8 +14,8 @@
                 @foreach ($items as $item)
                     <article class="card">
                         <div class="card-media">
-                            @if ($item->image_url)
-                                <img src="{{ str_starts_with($item->image_url, 'http') ? $item->image_url : asset('storage/'.$item->image_url) }}" alt="{{ $item->name }}">
+                            @if ($item->imageSource())
+                                <img src="{{ $item->imageSource() }}" alt="{{ $item->name }}">
                             @else
                                 <div class="placeholder">{{ $item->category }}</div>
                             @endif

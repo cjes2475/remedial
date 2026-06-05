@@ -57,4 +57,17 @@ class FavoriteItem extends Model
 
         return $total === 0 ? 0 : round(($this->battle_wins / $total) * 100, 1);
     }
+
+    public function imageSource(): ?string
+    {
+        if (! $this->image_url) {
+            return null;
+        }
+
+        if (str_starts_with($this->image_url, 'http')) {
+            return $this->image_url;
+        }
+
+        return route('favorites.image', ['path' => $this->image_url]);
+    }
 }

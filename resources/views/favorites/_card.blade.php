@@ -1,7 +1,7 @@
 <article class="card">
     <a class="card-media" href="{{ route('favorites.show', $favorite) }}">
-        @if ($favorite->image_url)
-            <img src="{{ str_starts_with($favorite->image_url, 'http') ? $favorite->image_url : asset('storage/'.$favorite->image_url) }}" alt="{{ $favorite->name }}">
+        @if ($favorite->imageSource())
+            <img src="{{ $favorite->imageSource() }}" alt="{{ $favorite->name }}">
         @else
             <div class="placeholder">{{ $favorite->category }}</div>
         @endif

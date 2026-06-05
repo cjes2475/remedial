@@ -164,6 +164,14 @@ class FavoriteItemController extends Controller
             ->with('status', 'Battle vote saved. A fresh matchup is ready.');
     }
 
+    public function image(string $path)
+    {
+        abort_if(str_contains($path, '..'), 404);
+        abort_unless(Storage::disk('public')->exists($path), 404);
+
+        return Storage::disk('public')->response($path);
+    }
+
     private function validatedData(Request $request, ?FavoriteItem $favorite = null): array
     {
         $validated = $request->validate([

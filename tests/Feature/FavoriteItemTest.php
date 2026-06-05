@@ -48,6 +48,7 @@ class FavoriteItemTest extends TestCase
             'category' => 'Drink',
         ]);
         Storage::disk('public')->assertExists($favorite->image_url);
+        $this->get($favorite->imageSource())->assertOk();
     }
 
     public function test_food_battle_records_vote(): void
