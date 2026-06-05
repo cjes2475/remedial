@@ -11,11 +11,13 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'Remedial Student',
-            'email' => 'student@example.com',
-            'password' => Hash::make('password'),
-        ]);
+        User::query()->updateOrCreate(
+            ['email' => 'student@example.com'],
+            [
+                'name' => 'Remedial Student',
+                'password' => Hash::make('password'),
+            ]
+        );
 
         $featuredItems = [
             ['name' => 'Matcha Latte', 'category' => 'Drink', 'rating' => 4.9, 'price' => 165, 'calories' => 220, 'favorite_level' => 10, 'mood_tags' => ['Sweet', 'Cold', 'Comfort Food'], 'reaction' => 'wow', 'image_url' => 'https://images.unsplash.com/photo-1515823064-d6e0c04616a7?auto=format&fit=crop&w=900&q=80'],
@@ -31,11 +33,18 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($featuredItems as $item) {
-            FavoriteItem::factory()->create($item);
+            FavoriteItem::query()->updateOrCreate(
+                ['name' => $item['name']],
+                $item
+            );
         }
 
-        FavoriteItem::factory()
-            ->count(20)
-            ->create();
+        $missingCount = max(0, 30 - FavoriteItem::query()->count());
+
+        if ($missingCount > 0) {
+            FavoriteItem::factory()
+                ->count($missingCount)
+                ->create();
+        }
     }
 }
