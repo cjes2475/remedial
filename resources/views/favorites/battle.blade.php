@@ -15,7 +15,7 @@
                     <article class="card">
                         <div class="card-media">
                             @if ($item->image_url)
-                                <img src="{{ $item->image_url }}" alt="{{ $item->name }}">
+                                <img src="{{ str_starts_with($item->image_url, 'http') ? $item->image_url : asset('storage/'.$item->image_url) }}" alt="{{ $item->name }}">
                             @else
                                 <div class="placeholder">{{ $item->category }}</div>
                             @endif

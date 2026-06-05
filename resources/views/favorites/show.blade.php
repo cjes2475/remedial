@@ -24,7 +24,7 @@
         </div>
         <div class="hero-visual">
             @if ($favorite->image_url)
-                <img src="{{ $favorite->image_url }}" alt="{{ $favorite->name }}">
+                <img src="{{ str_starts_with($favorite->image_url, 'http') ? $favorite->image_url : asset('storage/'.$favorite->image_url) }}" alt="{{ $favorite->name }}">
             @else
                 <div class="placeholder">{{ $favorite->category }}</div>
             @endif

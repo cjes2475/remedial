@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\FavoriteItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class FavoriteItemTest extends TestCase
@@ -23,6 +25,8 @@ class FavoriteItemTest extends TestCase
 
     public function test_user_can_create_a_favorite_item(): void
     {
+        Storage::fake('public');
+
         $response = $this->post(route('favorites.store'), [
             'name' => 'Mango Graham Shake',
             'category' => 'Drink',
@@ -31,9 +35,9 @@ class FavoriteItemTest extends TestCase
             'price' => 150,
             'calories' => 340,
             'favorite_level' => 10,
-            'image_url' => 'https://example.com/mango.jpg',
             'reaction' => 'yum',
             'mood_tags' => ['Sweet', 'Cold'],
+            'image' => UploadedFile::fake()->image('mango.jpg', 800, 600),
         ]);
 
         $favorite = FavoriteItem::first();
@@ -43,6 +47,7 @@ class FavoriteItemTest extends TestCase
             'name' => 'Mango Graham Shake',
             'category' => 'Drink',
         ]);
+        Storage::disk('public')->assertExists($favorite->image_url);
     }
 
     public function test_food_battle_records_vote(): void

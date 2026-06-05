@@ -8,7 +8,7 @@
         <p>Record a food or drink with category, rating, price, calories, favorite level, mood tags, and an optional image.</p>
     </section>
 
-    <form class="form-box" method="POST" action="{{ route('favorites.store') }}" style="margin-top: 22px;">
+    <form class="form-box" method="POST" action="{{ route('favorites.store') }}" enctype="multipart/form-data" style="margin-top: 22px;">
         @csrf
         @include('favorites._form')
         <div class="actions">

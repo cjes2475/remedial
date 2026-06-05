@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\FavoriteItem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -94,7 +95,7 @@ class FavoriteItemController extends Controller
 
     public function update(Request $request, FavoriteItem $favorite): RedirectResponse
     {
-        $favorite->update($this->validatedData($request));
+        $favorite->update($this->validatedData($request, $favorite));
 
         return redirect()
             ->route('favorites.show', $favorite)
@@ -104,6 +105,7 @@ class FavoriteItemController extends Controller
     public function destroy(FavoriteItem $favorite): RedirectResponse
     {
         $favoriteName = $favorite->name;
+        $this->deleteUploadedImage($favorite);
         $favorite->delete();
 
         return redirect()
@@ -162,7 +164,7 @@ class FavoriteItemController extends Controller
             ->with('status', 'Battle vote saved. A fresh matchup is ready.');
     }
 
-    private function validatedData(Request $request): array
+    private function validatedData(Request $request, ?FavoriteItem $favorite = null): array
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
@@ -172,14 +174,32 @@ class FavoriteItemController extends Controller
             'price' => ['required', 'numeric', 'min:0', 'max:99999', 'regex:/^\d+(\.\d{1,2})?$/'],
             'calories' => ['required', 'integer', 'min:0', 'max:5000'],
             'favorite_level' => ['required', 'integer', 'min:1', 'max:10'],
-            'image_url' => ['nullable', 'url', 'max:500'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
             'reaction' => ['nullable', 'string', 'max:16'],
             'mood_tags' => ['nullable', 'array'],
             'mood_tags.*' => [Rule::in(FavoriteItem::MOODS)],
         ]);
 
         $validated['mood_tags'] = $validated['mood_tags'] ?? [];
+        unset($validated['image']);
+
+        if ($request->hasFile('image')) {
+            if ($favorite) {
+                $this->deleteUploadedImage($favorite);
+            }
+
+            $validated['image_url'] = $request->file('image')->store('favorites', 'public');
+        }
 
         return $validated;
+    }
+
+    private function deleteUploadedImage(FavoriteItem $favorite): void
+    {
+        if (! $favorite->image_url || str_starts_with($favorite->image_url, 'http')) {
+            return;
+        }
+
+        Storage::disk('public')->delete($favorite->image_url);
     }
 }

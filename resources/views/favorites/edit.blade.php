@@ -8,7 +8,7 @@
         <p>Update the details for {{ $favorite->name }}.</p>
     </section>
 
-    <form class="form-box" method="POST" action="{{ route('favorites.update', $favorite) }}" style="margin-top: 22px;">
+    <form class="form-box" method="POST" action="{{ route('favorites.update', $favorite) }}" enctype="multipart/form-data" style="margin-top: 22px;">
         @csrf
         @method('PUT')
         @include('favorites._form')

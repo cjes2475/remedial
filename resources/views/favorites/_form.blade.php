@@ -54,8 +54,8 @@
     </label>
 
     <label>
-        Image URL
-        <input type="url" name="image_url" value="{{ old('image_url', $favorite->image_url) }}" placeholder="https://example.com/photo.jpg">
+        Image Upload
+        <input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif">
     </label>
 
     <label>
