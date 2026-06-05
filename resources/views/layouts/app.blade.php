@@ -383,5 +383,23 @@
 
         @yield('content')
     </main>
+    <script>
+        document.querySelectorAll('[data-decimal-money]').forEach((input) => {
+            input.addEventListener('input', () => {
+                let value = input.value.replace(/[^\d.]/g, '');
+                const dotIndex = value.indexOf('.');
+
+                if (dotIndex !== -1) {
+                    value = value.slice(0, dotIndex + 1) + value.slice(dotIndex + 1).replace(/\./g, '');
+                    const [whole, decimal = ''] = value.split('.');
+                    value = `${whole.slice(0, 5)}.${decimal.slice(0, 2)}`;
+                } else {
+                    value = value.slice(0, 5);
+                }
+
+                input.value = value;
+            });
+        });
+    </script>
 </body>
 </html>

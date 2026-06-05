@@ -29,7 +29,18 @@
 
     <label>
         Price
-        <input type="number" name="price" value="{{ old('price', $favorite->price) }}" min="0" max="99999" step="0.01" required>
+        <input
+            type="text"
+            name="price"
+            value="{{ old('price', $favorite->price) }}"
+            inputmode="decimal"
+            pattern="^\d+(\.\d{1,2})?$"
+            maxlength="8"
+            placeholder="0.00"
+            autocomplete="off"
+            data-decimal-money
+            required
+        >
     </label>
 
     <label>

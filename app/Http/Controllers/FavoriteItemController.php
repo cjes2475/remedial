@@ -169,7 +169,7 @@ class FavoriteItemController extends Controller
             'category' => ['required', Rule::in(FavoriteItem::CATEGORIES)],
             'description' => ['required', 'string', 'max:1000'],
             'rating' => ['required', 'numeric', 'min:1', 'max:5'],
-            'price' => ['required', 'numeric', 'min:0', 'max:99999'],
+            'price' => ['required', 'numeric', 'min:0', 'max:99999', 'regex:/^\d+(\.\d{1,2})?$/'],
             'calories' => ['required', 'integer', 'min:0', 'max:5000'],
             'favorite_level' => ['required', 'integer', 'min:1', 'max:10'],
             'image_url' => ['nullable', 'url', 'max:500'],
